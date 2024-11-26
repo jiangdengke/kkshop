@@ -5,7 +5,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://119.12.173.167:3306/kkshop
     username: root
-    password: bieshanwoku
+    password: 11111
   application:
     name: product-service
   cloud:

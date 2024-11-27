@@ -1,20 +1,19 @@
 package com.jiangdk.entity;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import java.io.Serializable;
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 /**
  * <p>
- * 订单详情表
+ * 商品表
  * </p>
  *
  * @author JiangDK
@@ -22,17 +21,12 @@ import lombok.EqualsAndHashCode;
  */
 @Data
   @EqualsAndHashCode(callSuper = false)
-    public class OrderDetail implements Serializable {
+    public class ProductInfo implements Serializable {
 
     private static final long serialVersionUID=1L;
 
-
-  @TableId(type = IdType.ASSIGN_UUID) // 设置id自增
-      private String detailId;
-
-    private String orderId;
-
-    private Integer productId;
+      @TableId(value = "product_id", type = IdType.AUTO)
+      private Integer productId;
 
       /**
      * 商品名称
@@ -45,14 +39,24 @@ import lombok.EqualsAndHashCode;
       private BigDecimal productPrice;
 
       /**
-     * 商品数量
+     * 库存
      */
-      private Integer productQuantity;
+      private Integer productStock;
 
       /**
-     * 商品小图
+     * 描述
+     */
+      private String productDescription;
+
+      /**
+     * 小图
      */
       private String productIcon;
+
+      /**
+     * 类目编号
+     */
+      private Integer categoryType;
 
       /**
      * 创建时间
@@ -65,6 +69,11 @@ import lombok.EqualsAndHashCode;
      */
         @TableField(fill = FieldFill.INSERT_UPDATE)
       private LocalDateTime updateTime;
+
+      /**
+     * 商品状态，1正常0下架
+     */
+      private Integer productStatus;
 
 
 }

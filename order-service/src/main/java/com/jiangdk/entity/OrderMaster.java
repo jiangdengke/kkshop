@@ -3,8 +3,11 @@ package com.jiangdk.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
+
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -22,6 +25,8 @@ import lombok.EqualsAndHashCode;
 
     private static final long serialVersionUID=1L;
 
+
+      @TableId(type = IdType.ASSIGN_UUID) // 设置id自增
       private String orderId;
 
       /**
@@ -52,12 +57,12 @@ import lombok.EqualsAndHashCode;
       /**
      * 订单状态，默认0新下单,1完成，2取消
      */
-      private Integer orderStatus;
+      private Integer orderStatus = 0;
 
       /**
      * 支付状态，默认0未支付，1已支付
      */
-      private Integer payStatus;
+      private Integer payStatus = 0;
 
       /**
      * 创建时间

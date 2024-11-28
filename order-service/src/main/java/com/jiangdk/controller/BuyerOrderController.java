@@ -1,6 +1,8 @@
 package com.jiangdk.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.jiangdk.entity.OrderDetail;
 import com.jiangdk.entity.OrderMaster;
 import com.jiangdk.entity.ProductInfo;
@@ -10,20 +12,23 @@ import com.jiangdk.form.ProductForm;
 import com.jiangdk.service.OrderDetailService;
 import com.jiangdk.service.OrderMasterService;
 import com.jiangdk.util.ResultVOUtil;
+import com.jiangdk.vo.OrderDetailVO;
+import com.jiangdk.vo.OrderMasterVO;
 import com.jiangdk.vo.ResultVO;
+import io.swagger.models.auth.In;
 import org.hibernate.validator.internal.constraintvalidators.bv.time.futureorpresent.FutureOrPresentValidatorForReadableInstant;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.actuator.HasFeatures;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.bind.annotation.*;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -91,5 +96,99 @@ public class BuyerOrderController {
         return ResultVOUtil.success(hashMap);
     }
 
+    /**
+     * 获取订单列表
+     * @param buyerId
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("/list/{buyerId}/{page}/{size}")
+    public ResultVO list(
+            @PathVariable("buyerId") Integer buyerId,
+            @PathVariable("page") Integer page,
+            @PathVariable("size") Integer size
+    ){
+        Page<OrderMaster> orderMasterPage = new Page<>(page, size);
+        QueryWrapper<OrderMaster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("buyer_id",buyerId);
+        Page<OrderMaster> resultPage = orderMasterService.page(orderMasterPage,queryWrapper);
+        return ResultVOUtil.success(resultPage.getRecords());
+    }
+    /**
+     * 查询订单详请
+     */
+    @GetMapping("/detail/{buyerId}/{orderId}")
+    public ResultVO detail(
+            @PathVariable("buyerId") Integer buyerId,
+            @PathVariable("orderId") String orderId
+    ){
+        // 查询主表
+        QueryWrapper<OrderMaster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("buyer_openid",buyerId);
+        queryWrapper.eq("order_id",orderId);
+        OrderMaster orderMaster = orderMasterService.getOne(queryWrapper);
+        // 查询从表
+        QueryWrapper<OrderDetail> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("order_id",orderId);
+        List<OrderDetail> orderDetailList = orderDetailService.list(queryWrapper1);
+        // 封装返回对象
+        OrderMasterVO orderMasterVO = new OrderMasterVO();
+        BeanUtils.copyProperties(orderMaster,orderMasterVO);
+        ArrayList<OrderDetailVO> orderDetailVOArrayList = new ArrayList<>();
+        for (OrderDetail orderDetail : orderDetailList) {
+            OrderDetailVO orderDetailVO = new OrderDetailVO();
+            BeanUtils.copyProperties(orderDetail,orderDetailVO);
+            orderDetailVOArrayList.add(orderDetailVO);
+        }
+        orderMasterVO.setOrderDetailList(orderDetailVOArrayList);
+        return ResultVOUtil.success(orderMasterVO);
+    }
+    /**
+     * 取消订单
+     */
+    @PutMapping("/cancel/{buyerId}/{orderId}")
+    public ResultVO cancel(
+           @PathVariable("buyerId") Integer buyerId,
+           @PathVariable("orderId") String orderId
+    ){
+        QueryWrapper<OrderMaster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("buyer_openid",buyerId);
+        queryWrapper.eq("order_id",orderId);
+        OrderMaster orderMaster = orderMasterService.getOne(queryWrapper);
+        orderMaster.setOrderStatus(2);
+        orderMasterService.updateById(orderMaster);
+        return ResultVOUtil.success(null);
+    }
+    /**
+     * 完结订单
+     */
+    @PutMapping("/finish/{orderId}")
+    public ResultVO finish(
+            @PathVariable("orderId") String orderId
+    ){
+        QueryWrapper<OrderMaster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("order_id",orderId);
+        OrderMaster orderMaster = orderMasterService.getOne(queryWrapper);
+        orderMaster.setOrderStatus(1);
+        orderMasterService.updateById(orderMaster);
+        return ResultVOUtil.success(null);
+    }
+    /**
+     * 支付订单
+     */
+    @PutMapping("/pay/{buyerId}/{orderId}")
+    public ResultVO pay(
+            @PathVariable("buyerId")Integer buyerId,
+            @PathVariable("orderId") String orderId
+    ){
+        QueryWrapper<OrderMaster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("buyer_id",buyerId);
+        queryWrapper.eq("order_id",orderId);
+        OrderMaster orderMaster = orderMasterService.getOne(queryWrapper);
+        orderMaster.setPayStatus(1);
+        orderMasterService.updateById(orderMaster);
+        return ResultVOUtil.success(null);
+    }
 }
 
